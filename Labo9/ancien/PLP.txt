@@ -1,0 +1,32 @@
+Exercice 46 :
+
+L1:  
+expression ::= {01 | 1}
+
+L2:
+expression	::= centre | 0 expression 0 | 1 expression 1
+centre		::= [0 | 1]
+
+L3 :
+Oui , possible de cette façon :
+expression	::= [0 expression 1 expression | 1 expression 0 expression]
+
+L4 :
+expression	::=	 more1 | more0
+sameNumbers	::= [0 sameNumbers 1 sameNumbers | 1 sameNumbers 0 sameNumbers]
+more1		::=	 1 {sameNumbers | more1} | {sameNumbers | more1} 1
+more0 		::=  0 {sameNumbers | more0} | {sameNumbers | more0} 0
+
+Exercice 47 :
+expression ::= expr_simple | expr_simple (=|<>|<|>|>=|<=|in) expr_simple 
+expr_simple ::= terme { (and|or) terme } 
+
+
+expression	::= terme | ou_logique | et_logique | less | eq | more | not
+
+
+eq			::=	terme == terme
+more		::= terme > terme
+not			::= !expression
+et_logique  ::= expression && expression
+ou_logique  ::= expression || expression
