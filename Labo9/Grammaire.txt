@@ -1,20 +1,22 @@
 (* Règles basiques *)
 digit   ::= 0-9
-sign    ::= + | -
+sign    ::= -
 int     ::= [sign]digit{digit}
-id      ::= [a-zA-Z_]{a-zA-Z0-9_}
+id      ::= {a-zA-Z0-9_}
 func    ::= "f_" + id
 var     ::= "v_" + id
 bin_op  ::= + | - | * | / | % | ^ | || | &&
 comp    ::= == | != | < | <= | > | >=
 
 (* Définition des expressions *)
-spl     ::= { def } expr
-def     ::= def func { var } = expr
-expr    ::= let var = expr in expr
-    | integer
-    | var
-    | func ( expr {, expr} )
-    | ( expr )
-    | if expr then expr else expr    
-    | expr (bin_op | comp) expr   
+spl     ::=   def | expr
+def     ::=   def func ( [var{, var}] ) = expr
+            | def var  = expr
+expr    ::=   let var = expr in expr
+            | integer
+            | var 
+            | func ( [expr {, expr}] )
+            | ( expr )
+            | "-" expr
+            | if expr then expr else expr    
+            | expr (bin_op | comp) expr 

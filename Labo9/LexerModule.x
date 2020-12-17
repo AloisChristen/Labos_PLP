@@ -9,7 +9,8 @@ module LexerModule (lexer, Name, Op, Token(..)) where
 $digit = 0-9       -- Macro pour les chiffres. 
 $alpha = [A-Za-z]  -- Macro pour les lettres
 
--- Règles, chaque règle doit spécifier une lambda expression de type [Char] -> Token
+-- Règles 
+-- chaque règle doit spécifier une lambda expression 
 tokens :-
     $white+                   ;
     $digit+                   { \s -> TInt (read s) }
@@ -17,27 +18,31 @@ tokens :-
     f_[$alpha $digit \_]+     { \s -> TFct s }
     \(                        { \s -> TLeftParenthesis } 
     \)                        { \s -> TRightParenthesis }
-    [\=\+\-\*\/\%]            { \s -> TSym s }
+    [\=\+\-\*\/\%\^]          { \s -> TSym s }
     "&&" | "||"               { \s -> TSym s }
-    \=\=|\!\=|\<|\<\=|\>|\>\= { \s -> TComp s }
+    "==" | "!="               { \s -> TComp s }
+    "<" | "<=" | ">" | ">="   { \s -> TComp s }
     if                        { \s -> TIf }
     then                      { \s -> TThen }
     else                      { \s -> TElse }
     let                       { \s -> TLet }
     in                        { \s -> TIn }
     def                       { \s -> TDef}
+    ","                       { \s -> TSym s }
  
 { 
 -- Définition du type Token.
 type Name = [Char]
 type Op = [Char]
 data Token = 
-    TVar Name | TFct Name |
+    TVar Name  | 
+    TFct Name  |
     TLet | TIn |
     TDef |
     TLeftParenthesis | TRightParenthesis |
     TIf | TElse | TThen | 
-    TInt Int | TSym Op | TComp Op  
+    TInt Int | 
+    TSym Op | TComp Op  
     deriving (Eq,Show)
 
 -- Alias du nom de la fonction d'analyse lexicale.

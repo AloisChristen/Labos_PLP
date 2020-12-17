@@ -7,9 +7,11 @@ import LexerModule
 %tokentype { Token } 
 %error { parseError }
 
--- Liste des terminaux de la grammaire
+-- Liste des terminaux 
 %token
     Integer   { TInt $$ }
+    var       { TVar $$ }
+    func      { TFct $$ }
     "("       { TLeftParenthesis }
     ")"       { TRightParenthesis }   
     "="       { TSym "=" }
@@ -17,6 +19,7 @@ import LexerModule
     "-"       { TSym "-" }
     "*"       { TSym "*" }
     "/"       { TSym "/" }
+    "^"       { TSym "^" }
     "%"       { TSym "%" }
     "&&"      { TSym "&&" }
     "||"      { TSym "||" }
@@ -31,32 +34,35 @@ import LexerModule
     else      { TElse }
     let       { TLet }
     in        { TIn }
-    var       { TVar $$ }
-    func      { TFct $$ }
     def       { TDef }
+    ","       { TSym "," }
 
 -- Définition des priorités et associativité
 %right in else "="  
 %left "+" "-" "||"
-%left "*" "/" "%"  "&&"
+%left "*" "/" "%" "^"  "&&"
 %left "==" "!=" "<" "<=" ">" ">="
 
 %% -- Passage au règles de grammaire
 
 -- Règles de la grammaire
 
-Line : Def                      {Def $1 } 
-     | Exp                      {Exp $1 }
+Line : Def  { Def $1 } 
+     | Exp  { Exp $1 }
 
 Def : def func "(" Params ")" "=" Exp { DefFunc $2 $4 $7 }
-    | def var "=" Exp               {DefVar $2 $4}
+    | def var "=" Exp                 { DefVar $2 $4 }
 
 Exp : 
-      Exp "+" Exp               { Bin "+" $1 $3 }
+      Integer                   { Cst $1 }
+    | func "(" Exps ")"         { App $1 $3}
+    | var                       { Var $1 }
+    | Exp "+" Exp               { Bin "+" $1 $3 }
     | Exp "-" Exp               { Bin "-" $1 $3 }
     | Exp "*" Exp               { Bin "*" $1 $3 }
     | Exp "/" Exp               { Bin "/" $1 $3 }
     | Exp "%" Exp               { Bin "%" $1 $3 }
+    | Exp "^" Exp               { Bin "^" $1 $3 }
     | Exp "&&" Exp              { Bin "&&" $1 $3 }
     | Exp "||" Exp              { Bin "||" $1 $3 }
     | Exp "==" Exp              { Bin "==" $1 $3 }
@@ -65,18 +71,17 @@ Exp :
     | Exp ">" Exp               { Bin ">" $1 $3 }
     | Exp ">=" Exp              { Bin ">=" $1 $3 }
     | Exp "<=" Exp              { Bin "<=" $1 $3 }
-    | Integer                   { Cst $1 }
     | if Exp then Exp else Exp  { If $2 $4 $6 }
     | let var "=" Exp in Exp    { Let $2 $4 $6 }
-    | func "(" Exps ")"         { App $1 $3}
-    | var                       { Var $1 }
     | "(" Exp ")"               { Par $2 }
+    | "-" Exp                   { Neg $2 }
 
 
-Exps : Exp  {[$1]}
-     | Exp Exps { $1:$2}
-Params : var {[$1]}
-       | var Params {$1:$2}
+Exps : Exp          { [$1] }
+     | Exp "," Exps { $1:$3 }
+
+Params : var            { [$1] }
+       | var "," Params { $1:$3 }
 
 {
 parseError :: [Token] -> a
@@ -93,12 +98,13 @@ data Def =
     DefFunc Name Params Exp
     deriving Show
 data Exp =
-    App Name Exps     |
-    Let Name Exp Exp  |
-    Par Exp           |
-    Bin Op Exp Exp  | 
-    If Exp Exp Exp |
-    Var Name | 
+    App Name Exps    |
+    Let Name Exp Exp |
+    Par Exp          |
+    Neg Exp          |
+    Bin Op Exp Exp   | 
+    If Exp Exp Exp   |
+    Var Name         | 
     Cst Int 
     deriving Show
 
